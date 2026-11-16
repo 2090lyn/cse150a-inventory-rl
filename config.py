@@ -1,6 +1,6 @@
 STORE = "CA_3"
 DEPT = "FOODS_3"
-ITEMS = {"low": None, "medium": None, "high": None}  # filled in once picked
+ITEMS = {"low": "FOODS_3_820", "medium": "FOODS_3_473", "high": "FOODS_3_080"}
 
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
