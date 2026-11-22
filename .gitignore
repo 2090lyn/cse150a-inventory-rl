@@ -1,2 +1,4 @@
 data/raw/
-.DS_Store
+.DS_Store__pycache__/
+*.py[cod]
+.venv/
