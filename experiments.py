@@ -100,17 +100,19 @@ def exp_cost(levels, seeds, passes):
     return rows
 
 def exp_policy(levels, passes):
+    OUT.mkdir(parents=True, exist_ok=True)
     for level in levels:
         info = data.load_processed(level)
         costs = mdp.make_costs(info["price"], info["d_max"])
         d, w = info["train"]
         print(f"[policy] {level}")
         _, r, S = baseline.order_up_to(d, w, costs)
-        vi, _, _ = value_iteration.value_iteration(info["m1"], costs)
+        vi_m0, _, _ = value_iteration.value_iteration(info["m0"], costs)
+        vi_m1, _, _ = value_iteration.value_iteration(info["m1"], costs)
         alpha = read_alpha(level)
         q, details = q_learning.q_learning(d, w, costs, alpha=alpha, passes=passes, seed=0, return_details=True)
         np.savez(OUT / f"policies_{level}.npz", baseline=baseline.reorder_policy(r, S, costs["i_max"]),
-                 vi_m1=vi, q_tuned=q, q_visited=details["visits"].sum(axis=2) > 0, r=r, S=S)
+                 vi_m0=vi_m0, vi_m1=vi_m1, q_tuned=q, q_visited=details["visits"].sum(axis=2) > 0, r=r, S=S)
 
 
 def save(rows, name):
@@ -240,9 +242,9 @@ def plot_all():
     files = [OUT / f"policies_{lv}.npz" for lv in levels]
     if all(f.exists() for f in files):
         days = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
-        cols = [("baseline", "Baseline (reorder rule)"), ("vi_m1", "Value iteration (M1)"),
-                ("q_tuned", "Q-learning (tuned, seed 0)")]
-        fig, axes = plt.subplots(3, 3, figsize=(11, 12), constrained_layout=True)
+        cols = [("baseline", "Baseline (reorder rule)"), ("vi_m0", "Value iteration (M0)"),
+                ("vi_m1", "Value iteration (M1)"), ("q_tuned", "Q-learning (tuned, seed 0)")]
+        fig, axes = plt.subplots(3, len(cols), figsize=(14, 12), constrained_layout=True)
         for i, (level, f) in enumerate(zip(levels, files)):
             P = np.load(f)
             vmax = max(P[k].max() for k, _ in cols)
@@ -256,8 +258,7 @@ def plot_all():
                 if j == 0:
                     ax.set_ylabel(f"{ITEM_LABEL[level]}\ninventory at start of day")
             fig.colorbar(im, ax=axes[i, :], label="units ordered", shrink=.9)
-        fig.suptitle("What does each learned policy actually do?\n"
-                     "Color = how many units to order given today's inventory (y) and weekday (x). "
+        fig.suptitle("Color = how many units to order given today's inventory (y) and weekday (x). "
                      "Grey = states Q-learning never visited in training.", fontsize=10)
         fig.savefig(FIG / "results_policies.png", dpi=160)
         plt.close(fig)
@@ -281,3 +282,4 @@ if __name__ == "__main__":
     if a.which in ("policy", "all"):
         exp_policy(a.levels, a.passes)
     plot_all()
+
