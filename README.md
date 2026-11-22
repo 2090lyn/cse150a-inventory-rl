@@ -24,7 +24,8 @@ python value_iteration.py       # VI with M0 and M1, test profit per item
 python q_learning.py --tune     # tune alpha, train Q-learning, save results
 python q_learning.py --plot     # convergence plots from saved results
 python -m unittest test_q_learning
-# [Tim: add the commands for the evaluation and experiment scripts]
+python experiments.py all      # every experiment + results figures (~10 min)
+python experiments.py plot     # redraw results figures from saved CSVs
 ```
 
 ## Files
@@ -39,7 +40,8 @@ python -m unittest test_q_learning
 | `value_iteration.py` | Bryan | Value iteration and exact policy evaluation |
 | `q_learning.py` | Raul | Tabular Q-learning, tuning, convergence diagnostics |
 | `test_q_learning.py` | Raul | Unit tests for Q-learning |
-| [Tim's files] | Tim | [Evaluation and experiments] |
+| `evaluate.py` | Tim | Scores any policy on the test days (profit, stockouts, orders, ...) |
+| `experiments.py` | Tim | Runs all experiments, saves result CSVs and results figures |
 
 ## config.py
 
@@ -167,3 +169,25 @@ python q_learning.py --plot                # plot saved convergence CSVs
 Results (policies, Q-tables, tuning and convergence CSVs) are saved to `results/q_learning/` by default (`--output` to change).
 
 ## Evaluation and experiments
+
+```python
+evaluate(policy, demand, weekday, costs, start_inventory=0) -> dict
+```
+Runs a policy day by day through `mdp.step`, starting from `start_inventory`, and returns total (undiscounted) `profit`, `profit_per_day`, `lost_units`, `stockout_days`, `fill_rate`, `orders`, `avg_inventory`, and `days`. Every method is scored with this function on the 141 test days.
+
+`experiments.py` trains every method (baseline, VI-M0, VI-M1, Q-learning with default and tuned alpha), scores each with `evaluate`, and saves the results:
+
+```bash
+python experiments.py main     # method comparison on full training data
+python experiments.py data     # train on the last N days, N in config.DATA_SIZES
+python experiments.py cost     # vary one cost at a time, values in config.COST_GRID
+python experiments.py policy   # save learned policies for the heatmap figure
+python experiments.py all      # all four
+python experiments.py plot     # redraw figures from saved CSVs only
+```
+Options: `--levels low medium high`, `--seeds 3` (Q-learning seeds), `--passes 200`.
+
+- Q-tuned reads its alpha from `results/q_learning/{level}_full_seed0_tuning.csv`, so run `python q_learning.py --tune` first if those files are missing.
+- In the data experiment, M0/M1 are refit on each slice; price and `d_max` stay fixed from the full training data.
+- Outputs: `results/experiments/{main,data,cost}.csv`, `results/experiments/policies_*.npz`, and `figures/results_*.png`.
+

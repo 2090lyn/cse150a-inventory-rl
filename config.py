@@ -23,3 +23,9 @@ Q_EPS_START, Q_EPS_END = 1.0, 0.05
 Q_PASSES = 200
 
 DATA_SIZES = [60, 180, 365, 900, 1800]
+
+COST_GRID = {
+    "order_frac": [0.5, 2.0, 5.0],
+    "lost_frac": [0.0, 0.2, 0.5],
+}
+
