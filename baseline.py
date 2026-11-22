@@ -2,7 +2,10 @@ import numpy as np
 
 import config
 from data import load_processed
+
+
 from mdp import make_costs, step
+
 
 def reorder_policy(r, S, i_max):
     """Order up to S only when inventory is below r. Shape (i_max + 1, 7)."""

@@ -4,15 +4,10 @@ import csv
 from pathlib import Path
 
 import numpy as np
+
 import config
 
 from mdp import make_costs
-
-#def make_costs(price, d_max):
-#    """Same cost dictionary consumed by baseline.step and the shared MDP."""
-#    return dict(p=price, c=config.UNIT_COST_FRAC * price,
-#                h=config.HOLD_FRAC * price, K=config.ORDER_COST_FRAC * price,
-#                g=config.LOST_FRAC * price, i_max=2 * d_max, a_max=d_max)
 
 
 def _step(s, w, a, d, costs):
