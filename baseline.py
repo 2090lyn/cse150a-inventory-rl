@@ -2,32 +2,7 @@ import numpy as np
 
 import config
 from data import load_processed
-
-
-# ---- TEMPORARY: replace with `from mdp import make_costs, step` once Bryan pushes mdp.py ----
-def make_costs(price, d_max):
-    return {
-        "p": price,
-        "c": config.UNIT_COST_FRAC * price,
-        "h": config.HOLD_FRAC * price,
-        "K": config.ORDER_COST_FRAC * price,
-        "g": config.LOST_FRAC * price,
-        "i_max": 2 * d_max,
-        "a_max": d_max,
-    }
-
-
-def step(s, w, a, d, costs):
-    """One day: order arrives, demand happens. Returns (next_s, next_w, reward, lost)."""
-    a = min(a, costs["a_max"], costs["i_max"] - s)       # can't exceed caps
-    sales = min(s + a, d)
-    lost = d - sales
-    next_s = s + a - sales
-    reward = (costs["p"] * sales - costs["c"] * a
-              - costs["K"] * (a > 0) - costs["h"] * next_s - costs["g"] * lost)
-    return next_s, (w + 1) % 7, reward, lost
-# ---- end temporary ----
-
+from mdp import make_costs, step
 
 def reorder_policy(r, S, i_max):
     """Order up to S only when inventory is below r. Shape (i_max + 1, 7)."""
